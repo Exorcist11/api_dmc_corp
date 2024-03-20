@@ -19,7 +19,7 @@ class Order(db.Model):
 
     # Relationship
     address = relationship('Address', uselist=False, backref='Orders', lazy=True)
-    products = relationship('Products', backref='Orders', secondary='Order_Product', lazy=True)
+    products = relationship('Product', backref='Orders', secondary='Order_Product', lazy=True)
 
 
 class OrderProduct(db.Model):

@@ -17,5 +17,5 @@ class Account(db.Model):
     id_deleted = Column(Boolean, default=False)
 
     # Relationship
-    user = relationship('Users', backref='Accounts', uselist=False, lazy=True)
+    user = relationship('User', backref='Accounts', uselist=False, lazy=True)
 

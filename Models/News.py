@@ -9,7 +9,7 @@ class New(db.Model):
     new_id = Column(String(5), primary_key=True)
     title_new = Column(String(200), nullable=True)
     content = Column(Text, nullable=False)
-    author = Column(String(50), ForeignKey('Users.account_id') ,nullable=True)
+    author = Column(String(50), ForeignKey('Users.account_id'), nullable=True)
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())
 

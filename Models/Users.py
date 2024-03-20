@@ -17,8 +17,8 @@ class User(db.Model):
     is_deleted = Column(Boolean, default=False)
 
     # Relationship
-    new = relationship('News', backref='Users', lazy=True)
+    new = relationship('New', backref='Users', lazy=True)
     address = relationship('Address', backref='Users', lazy=True)
-    cart = relationship('Carts', backref='Users', lazy=True, uselist=False)
-    orders = relationship('Orders', backref='Users', lazy=True)
+    cart = relationship('Cart', backref='Users', lazy=True, uselist=False)
+    orders = relationship('Order', backref='Users', lazy=True)
 

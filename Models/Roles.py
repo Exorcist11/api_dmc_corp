@@ -11,4 +11,4 @@ class Role(db.Model):
     description = Column(String(200), nullable=False)
 
     # Relationship
-    accounts = relationship('Accounts', backref='Roles', lazy=True)
+    accounts = relationship('Account', backref='Roles', lazy=True)

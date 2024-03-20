@@ -16,6 +16,6 @@ class Review(db.Model):
     is_deleted = Column(Boolean, default=False)
 
     # Relationship
-    order = relationship('Orders', backref='Reviews', lazy=True, uselist=False)
+    order = relationship('Order', backref='Reviews', lazy=True, uselist=False)
 
 

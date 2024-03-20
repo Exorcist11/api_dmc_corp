@@ -1,6 +1,9 @@
-from flask import request
+from flask import request, jsonify
+from Models.Roles import Role
 
 
 def register():
-    username = request.form
-    return {'username': username}
+
+    return jsonify({
+        'status': 'success'
+    }), 200

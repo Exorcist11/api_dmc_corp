@@ -20,4 +20,4 @@ class Category(db.Model):
     is_activated = Column(Boolean, default=True)
 
     # Relationship
-    products = relationship('Products', secondary='Category_Product', lazy=True, backref='Category')
+    products = relationship('Product', secondary='Category_Product', lazy=True, backref='Categories')

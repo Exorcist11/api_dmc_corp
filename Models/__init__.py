@@ -1,15 +1,15 @@
-from Users import User
-from Accounts import Account
-from Roles import Role
-from News import New
-from Address import Address
-from Sellers import Seller
-from Products import Product
-from Categories import Category, CategoryProduct
-from Images import Image
-from Reviews import Review
-from Carts import Cart, CartProducts
-from Orders import OrderProduct, Order
+from Models.Users import User
+from Models.Accounts import Account
+from Models.Roles import Role
+from Models.News import New
+from Models.Address import Address
+from Models.Sellers import Seller
+from Models.Products import Product
+from Models.Categories import Category, CategoryProduct
+from Models.Images import Image
+from Models.Reviews import Review
+from Models.Carts import Cart, CartProducts
+from Models.Orders import OrderProduct, Order
 
 from config import db, app
 

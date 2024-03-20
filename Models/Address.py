@@ -19,5 +19,5 @@ class Address(db.Model):
     is_activated = Column(Boolean, default=True)
 
     # Relationship
-    order = relationship('Orders', backref='Address', lazy=True, uselist=False)
+
 

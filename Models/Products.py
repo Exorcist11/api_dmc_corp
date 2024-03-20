@@ -24,7 +24,7 @@ class Product(db.Model):
     is_deleted = Column(Boolean, default=True)
 
     # Relationship
-    categories = relationship('Categories', secondary='Category_Product', backref='Products')
-    carts = relationship('Carts', secondary='Cart_Product', backref='Products', lazy=True)
-    orders = relationship('Orders', secondary='Order_Product', backref='Products', lazy=True)
+
+
+
 

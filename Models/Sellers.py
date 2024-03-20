@@ -16,5 +16,5 @@ class Seller(db.Model):
     is_activated = Column(Boolean, default=True)
 
     # Relationship
-    product = relationship('Products', backref='Seller', lazy=True)
+    product = relationship('Product', backref='Sellers', lazy=True)
 
