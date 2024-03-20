@@ -1,7 +1,6 @@
 from config import db
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text, Boolean, Float
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 
 
 class Product(db.Model):
@@ -24,7 +23,3 @@ class Product(db.Model):
     is_deleted = Column(Boolean, default=True)
 
     # Relationship
-
-
-
-

@@ -9,6 +9,6 @@ class Image(db.Model):
     url = Column(String(255), nullable=True)
     content_type = Column(String(255), nullable=False)
     product_id = Column(String(5), nullable=False)
-    account_id = Column(String(5), nullable=False)
+    account_id = Column(String(50), nullable=False)
 
 

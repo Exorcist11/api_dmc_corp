@@ -9,8 +9,8 @@ class Review(db.Model):
 
     review_id = Column(Integer, autoincrement=True, primary_key=True)
     title = Column(String(100), nullable=True)
-    content = Column(String(255), nullable=False)
-    rate = Column(Integer, nullable=True)
+    content = Column(String(255), nullable=True)
+    rate = Column(Integer, nullable=False)
     order_id = Column(String(9), ForeignKey('Orders.order_id'))
     create_at = Column(DateTime(timezone=True), default=func.now())
     is_deleted = Column(Boolean, default=False)

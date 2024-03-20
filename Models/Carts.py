@@ -8,11 +8,12 @@ class Cart(db.Model):
     __tablename__ = 'Carts'
 
     cart_id = Column(String(9), primary_key=True)
-    account_id = Column(String(9), ForeignKey('Users.account_id'))
+    account_id = Column(String(50), ForeignKey('Users.account_id'))
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())
 
     # Relationship
+    user = relationship('User', backref='Carts', uselist=False, lazy=True)
     products = relationship('Product', backref='Carts', secondary='Cart_Product', lazy=True)
 
 

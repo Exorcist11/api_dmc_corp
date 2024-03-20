@@ -8,10 +8,10 @@ class Order(db.Model):
     __tablename__ = 'Orders'
 
     order_id = Column(String(9), primary_key=True)
-    account_id = Column(String(9), ForeignKey('Users.account_id'))
+    account_id = Column(String(50), ForeignKey('Users.account_id'))
     status = Column(Boolean, default=False)
-    payment = Column(String(10), nullable=True)
-    note = Column(String(200), nullable=False)
+    payment = Column(String(10), nullable=False)
+    note = Column(String(200), nullable=True)
     address_id = Column(Integer, ForeignKey('Address.address_id'))
     total = Column(Float, nullable=False)
     create_at = Column(DateTime(timezone=True), default=func.now())
