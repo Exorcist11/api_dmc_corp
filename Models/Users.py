@@ -9,9 +9,9 @@ class User(db.Model):
 
     account_id = Column(String(50), ForeignKey('Accounts.account_id'), primary_key=True)
     full_name = Column(String(50), nullable=True)
-    phone_number = Column(String(10), nullable=True, unique=True)
-    email = Column(String(50), nullable=True, unique=True)
-    date_of_birth = Column(DateTime(timezone=True), nullable=True)
+    phone_number = Column(String(10), nullable=False, unique=True)
+    email = Column(String(50), nullable=False, unique=True)
+    date_of_birth = Column(DateTime(timezone=True), nullable=False)
     time_register = Column(DateTime(timezone=True), default=func.now())
     time_update = Column(DateTime(timezone=True), default=func.now())
     is_deleted = Column(Boolean, default=False)
