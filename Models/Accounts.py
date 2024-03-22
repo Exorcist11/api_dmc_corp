@@ -13,7 +13,7 @@ class Account(db.Model):
     time_register = Column(DateTime(timezone=True), default=func.now())
     time_update = Column(DateTime(timezone=True), default=func.now())
     role_id = Column(String(5), ForeignKey('Roles.role_id'), nullable=True, default='R1')
-    is_activated = Column(Boolean, default=True)
+    is_activated = Column(Boolean, default=False)
     id_deleted = Column(Boolean, default=False)
 
     # Relationship

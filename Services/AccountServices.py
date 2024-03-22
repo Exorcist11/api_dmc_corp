@@ -11,29 +11,68 @@ def register():
     try:
         request_form = request.form.to_dict()
         account_id = str(uuid.uuid4())
-        new_account = Account(
-            account_id=account_id,
-            username=request_form['username'],
-            password=bcrypt.hashpw(request_form['password'].encode('utf-8'), bcrypt.gensalt())
-        )
-        db.session.add(new_account)
-        db.session.commit()
+        username = request_form['username']
+        if Account.query.filter_by(username=username).first() is not None:
+            return jsonify({
+                'status': 406,
+                'message': 'Account already exists!'
+            }), 406
+        else:
+            new_account = Account(
+                account_id=account_id,
+                username=username,
+                password=bcrypt.hashpw(request_form['password'].encode('utf-8'), bcrypt.gensalt())
+            )
+            db.session.add(new_account)
+            db.session.commit()
 
-        new_user = User(
-            account_id=account_id,
-            full_name=str(uuid.uuid4())[:20]
-        )
-        db.session.add(new_user)
-        db.session.commit()
+            new_user = User(
+                account_id=account_id,
+                full_name=str(uuid.uuid4())[:20]
+            )
+            db.session.add(new_user)
+            db.session.commit()
 
-        account = Account.query.get(account_id)
+            account = Account.query.get(account_id)
 
+            return jsonify({
+                'status': 200,
+                'message': 'Register successfully!',
+                'account_id': account.account_id
+            }), 200
+
+    except Exception as e:
         return jsonify({
-            'status': 200,
-            'message': 'Register successfully!',
-            'account_id': account.account_id
-        }), 200
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
 
+
+def login():
+    try:
+        request_form = request.form.to_dict()
+        username = request_form['username']
+        password = request_form['password']
+        account = Account.query.filter_by(username=username).first()
+        if account is None:
+            return jsonify({
+                'status': 404,
+                'message': 'Username not found!'
+            }), 404
+        else:
+            check_password = bcrypt.checkpw(password.encode('utf-8'), account.password.encode('utf-8'))
+            if check_password:
+                account.is_activated = True
+                db.session.commit()
+                return jsonify({
+                    'status': 200,
+                    'message': 'Login successfully'
+                }), 200
+            else:
+                return jsonify({
+                    'status': 401,
+                    'message': 'Wrong password!'
+                }), 401
     except Exception as e:
         return jsonify({
             'status': 500,
@@ -85,11 +124,12 @@ def edit_account(account_id):
                     'message': 'Account not found!'
                 }), 404
             old_password = request_form['password']
-            if bcrypt.checkpw(old_password.encode('utf-8'), bcrypt.hashpw(account.password.encode('utf-8'), bcrypt.gensalt())) == False:
+
+            if not bcrypt.checkpw(old_password.encode('utf-8'), account.password.encode('utf-8')):
                 return jsonify({
-                    'status': 301,
+                    'status': 401,
                     'message': 'Wrong password!'
-                }), 301
+                }), 401
             else:
                 account.password = bcrypt.hashpw(request_form['new_password'].encode('utf-8'), bcrypt.gensalt())
                 db.session.commit()
@@ -102,3 +142,13 @@ def edit_account(account_id):
             'status': 500,
             'message': f'Error: {e}'
         }), 500
+
+
+def logout(account_id):
+    account = Account.query.filter_by(account_id=account_id).first()
+    account.is_activated = False
+    db.session.commit()
+    return jsonify({
+        'status': 200,
+        'message': 'Logout successfully!'
+    }), 200
