@@ -8,7 +8,7 @@ class Product(db.Model):
 
     product_id = Column(String(5), primary_key=True)
     product_name = Column(String(125), nullable=True)
-    seller_id = Column(String(5), ForeignKey('Sellers.seller_id'), nullable=True)
+    seller_id = Column(Integer, ForeignKey('Sellers.seller_id'), nullable=True)
     price = Column(Integer, nullable=True)
     amount = Column(Integer, nullable=True, default=1)
     rate = Column(Float, nullable=False, default=0)

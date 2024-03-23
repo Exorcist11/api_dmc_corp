@@ -5,6 +5,7 @@ from flask import request, jsonify
 from config import db
 from Models.Accounts import Account
 from Models.Users import User
+from Models.Roles import Role
 
 
 def register():
@@ -152,3 +153,55 @@ def logout(account_id):
         'status': 200,
         'message': 'Logout successfully!'
     }), 200
+
+
+def get_account_by_role():
+    try:
+        role_id = request.args.get('role_id')
+        users = User.query.join(Account).join(Role).filter(Account.role_id == role_id).all()
+        list_user = []
+
+        for user in users:
+            list_user.append({
+                'full_name': user.full_name,
+                'phone_number': user.phone_number,
+                'email': user.email,
+                'dob': user.date_of_birth,
+                'time_register': user.time_register,
+                'time_update': user.time_update,
+                'is_deleted': user.is_deleted
+            })
+
+        if not users:
+            return jsonify({
+                'status': 404,
+                'message': 'Users is null!'
+            }), 404
+
+        return jsonify({
+            'status': 200,
+            'list_user': list_user,
+            'role': role_id
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def change_role(account_id):
+    try:
+        account = Account.query.filter_by(account_id=account_id).first_or_404()
+        account.role_id = request.form.get('role')
+        db.session.commit()
+
+        return jsonify({
+            'status': 200,
+            'message': f'Change role successfully!'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
