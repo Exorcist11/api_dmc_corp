@@ -10,7 +10,7 @@ from Models.Roles import Role
 
 def register():
     try:
-        request_form = request.form.to_dict()
+        request_form = request.json
         account_id = str(uuid.uuid4())
         username = request_form['username']
         if Account.query.filter_by(username=username).first() is not None:
@@ -51,7 +51,7 @@ def register():
 
 def login():
     try:
-        request_form = request.form.to_dict()
+        request_form = request.json
         username = request_form['username']
         password = request_form['password']
         account = Account.query.filter_by(username=username).first()
@@ -65,9 +65,11 @@ def login():
             if check_password:
                 account.is_activated = True
                 db.session.commit()
+                
                 return jsonify({
                     'status': 200,
-                    'message': 'Login successfully'
+                    'message': 'Login successfully',
+                    'user_id': account.account_id
                 }), 200
             else:
                 return jsonify({
