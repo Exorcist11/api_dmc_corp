@@ -7,7 +7,7 @@ from datetime import datetime
 
 def manage_address(account_id):
     try:
-        request_form = request.form.to_dict()
+        request_form = request.json
 
         if request.method == 'POST':
             new_address = Address(

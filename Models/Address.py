@@ -13,6 +13,7 @@ class Address(db.Model):
     province = Column(String(255), nullable=False)
     district = Column(String(255), nullable=False)
     ward = Column(String(255), nullable=False)
+    note = Column(String(255), nullable=False)
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())
     is_activated = Column(Boolean, default=True)
