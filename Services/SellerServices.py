@@ -115,3 +115,5 @@ def manage_seller(seller_id):
             'status': 500,
             'message': f'Error: {e}'
         }), 500
+
+

@@ -5,7 +5,7 @@ from Models.News import New
 from Models.Address import Address
 from Models.Sellers import Seller
 from Models.Products import Product
-from Models.Categories import Category, CategoryProduct
+from Models.Categories import Category
 from Models.Images import Image
 from Models.Reviews import Review
 from Models.Carts import Cart, CartProducts

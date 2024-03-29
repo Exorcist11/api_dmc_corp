@@ -17,6 +17,6 @@ class User(db.Model):
     is_deleted = Column(Boolean, default=False)
 
     # Relationship
-    new = relationship('New', backref='Users', lazy=True)
-    address = relationship('Address', backref='Users', lazy=True)
-    orders = relationship('Order', backref='Users', lazy=True)
+    new = relationship('New', backref='user', lazy=True, cascade='all, delete-orphan')
+    address = relationship('Address', backref='user', lazy=True, cascade='all, delete-orphan')
+    orders = relationship('Order', backref='user', lazy=True, cascade='all, delete-orphan')

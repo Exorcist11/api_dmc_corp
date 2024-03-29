@@ -13,8 +13,8 @@ class Cart(db.Model):
     update_at = Column(DateTime(timezone=True), default=func.now())
 
     # Relationship
-    user = relationship('User', backref='Carts', uselist=False, lazy=True)
-    products = relationship('Product', backref='Carts', secondary='Cart_Product', lazy=True)
+    user = relationship('User', backref='cart', uselist=False, lazy=True)
+    products = relationship('Product', backref='cart', secondary='Cart_Product', lazy=True)
 
 
 class CartProducts(db.Model):

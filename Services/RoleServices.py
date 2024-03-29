@@ -1,4 +1,6 @@
 from Models.Roles import Role
+from Models.Accounts import Account
+from Models.Users import User
 from flask import request, jsonify
 from config import db
 
@@ -44,14 +46,36 @@ def manage_role():
         }), 500
 
 
-def delete_role(role_id):
+def all_delete_role(role_id):
     try:
-        role = Role.query.filter_by(role_id=role_id).delete()
-        db.session.commit()
-        return jsonify({
-            'status': 200,
-            'message': 'Success!'
-        }), 200
+        if request.method == 'DELETE':
+            role = Role.query.filter_by(role_id=role_id).delete()
+            db.session.commit()
+            return jsonify({
+                'status': 200,
+                'message': 'Success!'
+            }), 200
+        if request.method == 'GET':
+            # role_by_id = User.query.join(Account).join(Role).add_column(Account.username).filter_by(role_id=role_id).all()
+            list_user_by_id = []
+            users = User.query.join(Account).filter_by(role_id=role_id).all()
+
+            for user in users:
+                list_user_by_id.append({
+                    'user_id': user.account_id,
+                    'username': user.account.username,
+                    'full_name': user.full_name,
+                    'phone_number': user.phone_number,
+                    'email': user.email,
+                    'date_of_birth': user.date_of_birth,
+                    'create_at': user.time_register,
+                    'update_at': user.time_update
+                })
+            return jsonify({
+                'status': 200,
+                'message': f'List user by Role {role_id}',
+                'users': list_user_by_id
+            }), 200
     except Exception as e:
         return jsonify({
             'status': 500,

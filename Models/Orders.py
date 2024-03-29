@@ -18,8 +18,8 @@ class Order(db.Model):
     update_at = Column(DateTime(timezone=True), default=func.now())
 
     # Relationship
-    address = relationship('Address', uselist=False, backref='Orders', lazy=True)
-    products = relationship('Product', backref='Orders', secondary='Order_Product', lazy=True)
+    address = relationship('Address', uselist=False, backref='order', lazy=True)
+    products = relationship('Product', backref='order', secondary='Order_Product', lazy=True)
 
 
 class OrderProduct(db.Model):
