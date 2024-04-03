@@ -8,9 +8,8 @@ from Models.Provides import *
 
 def manage_address(account_id):
     try:
-        request_form = request.json
-
         if request.method == 'POST':
+            request_form = request.json
             new_address = Address(
                 account_id=account_id,
                 full_name=request_form['full_name'],
@@ -41,7 +40,7 @@ def manage_address(account_id):
             }), 200
 
         if request.method == 'GET':
-            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).all()
+            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).limit(3).all()
             list_address = []
             for address in lst_address:
                 province = Province.query.filter_by(code=address.province).first()
