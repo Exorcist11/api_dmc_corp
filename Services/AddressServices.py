@@ -3,6 +3,7 @@ from Models.Address import Address
 from config import db
 from flask import jsonify, request
 from datetime import datetime
+from Models.Provides import *
 
 
 def manage_address(account_id):
@@ -17,6 +18,7 @@ def manage_address(account_id):
                 province=request_form['province'],
                 district=request_form['district'],
                 ward=request_form['ward'],
+                note=request_form['note']
             )
             db.session.add(new_address)
             db.session.commit()
@@ -35,20 +37,24 @@ def manage_address(account_id):
 
             return jsonify({
                 'status': 200,
-                'data': list_address,
-                'user_name': addresses.full_name
+                'data': list_address
             }), 200
 
         if request.method == 'GET':
+            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).all()
             list_address = []
-            for address in Address.query.join(User.address).filter_by(account_id=account_id).all():
+            for address in lst_address:
+                province = Province.query.filter_by(code=address.province).first()
+                district = District.query.filter_by(code=address.district).first()
+                ward = Ward.query.filter_by(code=address.ward).first()
                 list_address.append({
                     'address_id': address.address_id,
                     'full_name': address.full_name,
                     'phone_number': address.phone_number,
-                    'province': address.province,
-                    'district': address.district,
-                    'ward': address.ward
+                    'province': province.name if province else None,
+                    'district': district.name if district else None,
+                    'ward': ward.name if ward else None,
+                    'note': address.note
                 })
 
             return jsonify({
@@ -117,6 +123,76 @@ def setting_address(address_id):
                 'data': data
             }), 200
 
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_all_provinces():
+    try:
+        provinces = Province.query.all()
+        record = []
+        for province in provinces:
+            record.append({
+                'code': province.code,
+                'name': province.name,
+                'full_name': province.full_name,
+                'code_name': province.code_name
+            })
+        return jsonify({
+            'status': 200,
+            'provinces': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_district_by_province(province_id):
+    try:
+        districts = District.query.filter_by(province_code=province_id).all()
+        province = Province.query.filter_by(code=province_id).first_or_404()
+        record = []
+        for district in districts:
+            record.append({
+                'code': district.code,
+                'name': district.name,
+                'full_name': district.full_name,
+                'code_name': district.code_name
+            })
+        return jsonify({
+            'status': 200,
+            'province': province.name,
+            'districts': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_ward_by_district(province_id, district_id):
+    try:
+        district = District.query.filter_by(code=district_id).first_or_404()
+        wards = Ward.query.filter_by(district_code=district_id).all()
+        record = []
+        for ward in wards:
+            record.append({
+                'code': ward.code,
+                'name': ward.name,
+                'full_name': ward.full_name,
+                'code_name': ward.code_name
+            })
+        return jsonify({
+            'status': 200,
+            'district': district.name,
+            'ward': record
+        }), 200
     except Exception as e:
         return jsonify({
             'status': 500,

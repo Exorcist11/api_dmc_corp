@@ -65,11 +65,14 @@ def login():
             if check_password:
                 account.is_activated = True
                 db.session.commit()
-                
+                record = {
+                    'account_id': account.account_id,
+                    'username': account.username
+                }
                 return jsonify({
                     'status': 200,
                     'message': 'Login successfully',
-                    'user_id': account.account_id
+                    'info': record
                 }), 200
             else:
                 return jsonify({
