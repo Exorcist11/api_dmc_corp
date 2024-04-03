@@ -13,4 +13,4 @@ class Category(db.Model):
     is_activated = Column(Boolean, default=True)
 
     # Relationship
-    products = relationship('Product', lazy=True, backref='category', cascade='all, delete-orphan')
+    products = relationship('Product', backref='category', lazy=True, cascade='all, delete-orphan')

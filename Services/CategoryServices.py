@@ -67,7 +67,8 @@ def settings_category(category_id):
             }), 200
 
         if request.method == 'DELETE':
-            category = Category.query.filter_by(category_id=category_id).delete()
+            category = Category.query.get(category_id)
+            db.session.delete(category)
             db.session.commit()
             return jsonify({
                 'status': 200,

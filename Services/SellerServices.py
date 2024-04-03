@@ -7,10 +7,10 @@ from datetime import datetime
 def add_new_seller():
     try:
         if request.method == 'POST':
-            request_form = request.form.to_dict()
+            request_form = request.json
             new_seller = Seller(
                 seller_name=request_form['seller_name'],
-                description=request_form['description'],
+                description=request_form.get('description', None),
                 nation=request_form['nation']
             )
             db.session.add(new_seller)
