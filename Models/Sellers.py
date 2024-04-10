@@ -10,6 +10,7 @@ class Seller(db.Model):
     seller_id = Column(Integer, primary_key=True, autoincrement=True)
     seller_name = Column(String(100), nullable=True)
     description = Column(Text, nullable=True)
+    path_seller = Column(String(100), nullable=True)
     nation = Column(String(50), nullable=True)
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())

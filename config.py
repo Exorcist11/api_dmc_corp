@@ -7,6 +7,8 @@ app = Flask(__name__)
 cors = CORS(app)
 
 app.config['CORS_HEADERS'] = 'Content-Type'
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Connect to database
 # Local host
@@ -20,3 +22,4 @@ app.config['SQLAlCHEMY_TRACK_MODIFICATIONS'] = True
 
 # Creating data base
 db = SQLAlchemy(app)
+

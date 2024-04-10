@@ -2,6 +2,7 @@ from flask import jsonify, request
 from Models.Sellers import Seller
 from config import db
 from datetime import datetime
+from Services.Middleware import *
 
 
 def add_new_seller():
@@ -11,7 +12,8 @@ def add_new_seller():
             new_seller = Seller(
                 seller_name=request_form['seller_name'],
                 description=request_form.get('description', None),
-                nation=request_form['nation']
+                nation=request_form['nation'],
+                path_seller=convert_to_ascii(request_form['seller_name'])
             )
             db.session.add(new_seller)
             db.session.commit()

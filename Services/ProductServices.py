@@ -1,15 +1,22 @@
 from Models.Products import Product
-from flask import request, jsonify
+from Models.Images import Image
+from Models.Categories import Category
+from Services.Middleware import *
+from flask import request, jsonify, send_from_directory
+from sqlalchemy import desc, func
 from config import db
+from werkzeug.utils import secure_filename
+import os
 
 
 def manage_product():
     try:
-        request_form = request.json
         if request.method == 'POST':
+            request_form = request.json
             new_product = Product(
                 product_id=request_form['product_id'],
                 product_name=request_form['product_name'],
+                path_product=convert_to_ascii(request_form['product_name']),
                 seller_id=request_form['seller'],
                 category_id=request_form['category_id'],
                 price=request_form.get('price', None),
@@ -19,7 +26,8 @@ def manage_product():
                 size=request_form.get('size', None),
                 width=request_form.get('width', None),
                 waterproof=request_form.get('waterproof', None),
-                description=request_form.get('description', None)
+                description_display=request_form.get('description_display', None),
+                description_markdown=request_form.get('description_markdown', None)
             )
             db.session.add(new_product)
             db.session.commit()
@@ -30,9 +38,11 @@ def manage_product():
             })
 
         if request.method == 'GET':
-            products = Product.query.all()
+            products = Product.query.order_by(desc(Product.create_at)).all()
             record = []
             for product in products:
+                images = Image.query.filter_by(product_id=product.product_id).all()
+                image_url = [image.url for image in images]
                 record.append({
                     'product_id': product.product_id,
                     'product_name': product.product_name,
@@ -46,7 +56,9 @@ def manage_product():
                     'size': product.size,
                     'width': product.width,
                     'waterproof': product.waterproof,
-                    'description': product.description
+                    'description_display': product.description_display,
+                    'description_markdown': product.description_markdown,
+                    'images': image_url
                 })
             return jsonify({
                 'status': 200,
@@ -134,6 +146,10 @@ def setting_product(product_id):
         }), 500
 
 
+def get_image(filename):
+    return send_from_directory('Images', filename)
+
+
 def get_product_by_seller(seller_id):
     try:
         if request.method == 'GET':
@@ -169,6 +185,108 @@ def get_product_by_seller(seller_id):
 def get_best_product():
     try:
         return True
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def upload_images():
+    if 'images' not in request.files:
+        return 'No images part', 400
+    images = request.files.getlist('images')
+    request_form = request.form
+
+    image_folder = 'Images'
+
+    if not os.path.exists(image_folder):
+        os.makedirs(image_folder)
+
+    for image in images:
+        filename = secure_filename(image.filename)
+        mimetype = image.mimetype
+        if not filename or not mimetype:
+            continue
+
+        image_path = os.path.join(image_folder, filename)
+        image.save(image_path)
+        new_image = Image(
+            url=f'{request.host_url}images/{filename}',
+            content_type=mimetype,
+            product_id=request_form.get('product_id', ''),
+            account_id=request_form.get('user_id', '')
+        )
+        db.session.add(new_image)
+    db.session.commit()
+    return 'Images have been uploaded successfully', 200
+
+
+def get_product_by_category(path_category):
+    try:
+        products = Product.query.join(Category).filter(Category.path_category == path_category).all()
+
+        record = []
+        for product in products:
+            images = Image.query.filter_by(product_id=product.product_id).all()
+            image_url = [image.url for image in images]
+            record.append({
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'seller_name': product.seller.seller_name,
+                'nation': product.seller.nation,
+                'category': product.category.category_name,
+                'price': product.price,
+                'amount': product.amount,
+                'rate': product.rate,
+                'color': product.color,
+                'material': product.material,
+                'size': product.size,
+                'width': product.width,
+                'waterproof': product.waterproof,
+                'description_display': product.description_display,
+                'description_markdown': product.description_markdown,
+                'images': image_url[0] if image_url else None,
+                'path_product': product.path_product
+            })
+        return jsonify({
+            'category_name': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_product_by_path_product(path_product):
+    try:
+        product = Product.query.filter_by(path_product=path_product).first_or_404()
+        images = Image.query.filter_by(product_id=product.product_id).all()
+        image_url = [image.url for image in images]
+        record = {
+            'product_id': product.product_id,
+            'product_name': product.product_name,
+            'seller_name': product.seller.seller_name,
+            'nation': product.seller.nation,
+            'price': product.price,
+            'amount': product.amount,
+            'category': product.category.category_name,
+            'rate': product.rate,
+            'color': product.color,
+            'material': product.material,
+            'size': product.size,
+            'width': product.width,
+            'waterproof': product.waterproof,
+            'description_display': product.description_display,
+            'description_markdown': product.description_markdown,
+            'images': image_url if image_url else None,
+            'path_product': product.path_product
+        }
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
     except Exception as e:
         return jsonify({
             'status': 500,

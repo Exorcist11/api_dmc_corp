@@ -2,6 +2,7 @@ from Models.Categories import Category
 from Models.Products import Product
 from flask import jsonify, request
 from config import db
+from Services.Middleware import *
 
 
 def manage_category():
@@ -22,7 +23,8 @@ def manage_category():
 
         if request.method == 'POST':
             new_category = Category(
-                category_name=request.json.get('category_name')
+                category_name=request.json.get('category_name'),
+                path_category=convert_to_ascii(request.json.get('category_name'))
             )
             db.session.add(new_category)
             db.session.commit()

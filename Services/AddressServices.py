@@ -4,6 +4,7 @@ from config import db
 from flask import jsonify, request
 from datetime import datetime
 from Models.Provides import *
+from sqlalchemy import desc
 
 
 def manage_address(account_id):
@@ -40,7 +41,7 @@ def manage_address(account_id):
             }), 200
 
         if request.method == 'GET':
-            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).limit(3).all()
+            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).order_by(desc(Address.update_at)).limit(3).all()
             list_address = []
             for address in lst_address:
                 province = Province.query.filter_by(code=address.province).first()
@@ -71,25 +72,30 @@ def manage_address(account_id):
 def setting_address(address_id):
     try:
         address = Address.query.filter_by(address_id=address_id).first_or_404()
-        request_form = request.form.to_dict()
 
         if request.method == 'PATCH':
-            address.full_name = request_form['full_name']
-            address.phone_number = request_form['phone_number']
-            address.province = request_form['province']
-            address.ward = request_form['ward']
+            request_form = request.json
+            address.full_name = request_form['full_name'],
+            address.phone_number = request_form['phone_number'],
+            address.province = request_form['province'],
+            address.district = request_form['district'],
+            address.ward = request_form['ward'],
+            address.note = request_form['note']
             address.update_at = datetime.now()
             db.session.commit()
 
             after = Address.query.filter_by(address_id=address_id).first_or_404()
+            province = Province.query.filter_by(code=after.province).first()
+            district = District.query.filter_by(code=after.district).first()
+            ward = Ward.query.filter_by(code=after.ward).first()
             data = {
                 'address_id': after.address_id,
                 'full_name': after.full_name,
                 'phone_number': after.phone_number,
-                'province': after.province,
-                'district': after.district,
-                'ward': after.ward,
-                'update_at': after.update_at
+                'province': province.name if province else None,
+                'district': district.name if district else None,
+                'ward': ward.name if ward else None,
+                'note': after.note
             }
 
             return jsonify({
@@ -107,15 +113,17 @@ def setting_address(address_id):
             }), 200
 
         if request.method == 'GET':
+            province = Province.query.filter_by(code=address.province).first()
+            district = District.query.filter_by(code=address.district).first()
+            ward = Ward.query.filter_by(code=address.ward).first()
             data = {
                 'address_id': address.address_id,
                 'full_name': address.full_name,
                 'phone_number': address.phone_number,
-                'province': address.province,
-                'district': address.district,
-                'ward': address.ward,
-                'update_at': address.update_at,
-                'create_at': address.update_at
+                'province': province.name if province else None,
+                'district': district.name if district else None,
+                'ward': ward.name if ward else None,
+                'note': address.note
             }
             return jsonify({
                 'status': 200,
