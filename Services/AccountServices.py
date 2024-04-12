@@ -4,20 +4,22 @@ from datetime import datetime
 from flask import request, jsonify
 from config import db
 from Models.Accounts import Account
+from Models.Carts import *
 from Models.Users import User
 from Models.Roles import Role
+from Services.Middleware import *
 
 
 def register():
     try:
         request_form = request.json
-        account_id = str(uuid.uuid4())
+        account_id = generate_custom_id('USER')
         username = request_form['username']
         if Account.query.filter_by(username=username).first() is not None:
             return jsonify({
-                'status': 406,
+                'status': 409,
                 'message': 'Account already exists!'
-            }), 406
+            }), 409
         else:
             new_account = Account(
                 account_id=account_id,
@@ -43,6 +45,7 @@ def register():
             }), 200
 
     except Exception as e:
+        db.session.rollback()
         return jsonify({
             'status': 500,
             'message': f'Error: {e}'
