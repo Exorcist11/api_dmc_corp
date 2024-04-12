@@ -3,7 +3,7 @@ from Models.Images import Image
 from Models.Categories import Category
 from Services.Middleware import *
 from flask import request, jsonify, send_from_directory
-from sqlalchemy import desc, func
+from sqlalchemy import desc
 from config import db
 from werkzeug.utils import secure_filename
 import os
@@ -74,10 +74,11 @@ def manage_product():
 def setting_product(product_id):
     try:
         product = Product.query.filter_by(product_id=product_id).first_or_404()
-        request_json = request.json
-
+        images = Image.query.filter_by(product_id=product.product_id).all()
+        image_url = [image.url for image in images]
         if request.method == 'GET':
             info_product = {
+                'product_id': product.product_id,
                 'product_name': product.product_name,
                 'seller_name': product.seller.seller_name,
                 'nation': product.seller.nation,
@@ -89,7 +90,9 @@ def setting_product(product_id):
                 'size': product.size,
                 'width': product.width,
                 'waterproof': product.waterproof,
-                'description': product.description
+                'description_markdown': product.description_markdown,
+                'description_html': product.description_display,
+                'images': image_url if image_url else None,
             }
             return jsonify({
                 'status': 200,
@@ -97,6 +100,7 @@ def setting_product(product_id):
                 'message': 'INFOR PRODUCT'
             })
         if request.method == 'PATCH':
+            request_json = request.json
             product.product_id = request_json['product_id'],
             product.product_name = request_json['product_name'],
             product.seller_id = request_json['seller'],
@@ -250,7 +254,8 @@ def get_product_by_category(path_category):
                 'path_product': product.path_product
             })
         return jsonify({
-            'category_name': record
+            'record': record,
+            'status': 200
         }), 200
     except Exception as e:
         return jsonify({
@@ -292,3 +297,4 @@ def get_product_by_path_product(path_product):
             'status': 500,
             'message': f'Error: {e}'
         }), 500
+
