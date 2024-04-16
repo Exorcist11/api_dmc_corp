@@ -10,6 +10,7 @@ from Models.Images import Image
 from Models.Reviews import Review
 from Models.Carts import Cart, CartProducts
 from Models.Orders import OrderProduct, Order
+from Models.WishList import WishList
 
 from config import db, app
 

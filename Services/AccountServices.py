@@ -21,28 +21,35 @@ def register():
                 'message': 'Account already exists!'
             }), 409
         else:
-            new_account = Account(
-                account_id=account_id,
-                username=username,
-                password=bcrypt.hashpw(request_form['password'].encode('utf-8'), bcrypt.gensalt())
-            )
-            db.session.add(new_account)
-            db.session.commit()
+            password = request_form['password']
+            if len(password) < 8:
+                return jsonify({
+                    'status': 422,
+                    'message': 'Invalid length'
+                }), 422
+            else:
+                new_account = Account(
+                    account_id=account_id,
+                    username=username,
+                    password=bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+                )
+                db.session.add(new_account)
+                db.session.commit()
 
-            new_user = User(
-                account_id=account_id,
-                full_name=str(uuid.uuid4())[:20]
-            )
-            db.session.add(new_user)
-            db.session.commit()
+                new_user = User(
+                    account_id=account_id,
+                    full_name=str(uuid.uuid4())[:20]
+                )
+                db.session.add(new_user)
+                db.session.commit()
 
-            account = Account.query.get(account_id)
+                account = Account.query.get(account_id)
 
-            return jsonify({
-                'status': 200,
-                'message': 'Register successfully!',
-                'account_id': account.account_id
-            }), 200
+                return jsonify({
+                    'status': 200,
+                    'message': 'Register successfully!',
+                    'account_id': account.account_id
+                }), 200
 
     except Exception as e:
         db.session.rollback()
@@ -92,7 +99,7 @@ def login():
 def edit_account(account_id):
     try:
         user = User.query.filter_by(account_id=account_id).first()
-        request_form = request.form.to_dict()
+
         if user is None:
             return jsonify({
                 'status': 404,
@@ -111,11 +118,11 @@ def edit_account(account_id):
                 'infor': infor
             }), 200
         elif request.method == 'PATCH':
-
-            user.full_name = request_form['full_name']
-            user.phone_number = request_form['phone_number']
-            user.email = request_form['email']
-            user.date_of_birth = request_form['dob']
+            request_json = request.json
+            user.full_name = request_json.get('full_name')
+            user.phone_number = request_json['phone_number']
+            user.email = request_json['email']
+            user.date_of_birth = request_json.get('dob')
             user.time_update = datetime.now()
 
             db.session.commit()
@@ -126,13 +133,14 @@ def edit_account(account_id):
                 'data': response.full_name
             }), 200
         elif request.method == 'PUT':
+            request_json = request.json
             account = Account.query.filter_by(account_id=account_id).first()
             if account is None:
                 return jsonify({
                     'status': 404,
                     'message': 'Account not found!'
                 }), 404
-            old_password = request_form['password']
+            old_password = request_json['password']
 
             if not bcrypt.checkpw(old_password.encode('utf-8'), account.password.encode('utf-8')):
                 return jsonify({
@@ -140,7 +148,7 @@ def edit_account(account_id):
                     'message': 'Wrong password!'
                 }), 401
             else:
-                account.password = bcrypt.hashpw(request_form['new_password'].encode('utf-8'), bcrypt.gensalt())
+                account.password = bcrypt.hashpw(request_json['new_password'].encode('utf-8'), bcrypt.gensalt())
                 db.session.commit()
                 return jsonify({
                     'status': 200,

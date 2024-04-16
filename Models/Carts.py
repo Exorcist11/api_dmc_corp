@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 class Cart(db.Model):
     __tablename__ = 'Carts'
 
-    cart_id = Column(String(50), primary_key=True, autoincrement=True)
+    cart_id = Column(String(50), primary_key=True)
     account_id = Column(String(50), ForeignKey('Users.account_id'))
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())
