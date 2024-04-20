@@ -50,6 +50,7 @@ def manage_product():
                     'nation': product.seller.nation,
                     'price': product.price,
                     'amount': product.amount,
+                    'category': product.category.category_name ,
                     'rate': product.rate,
                     'color': product.color,
                     'material': product.material,
@@ -58,11 +59,12 @@ def manage_product():
                     'waterproof': product.waterproof,
                     'description_display': product.description_display,
                     'description_markdown': product.description_markdown,
-                    'images': image_url
+                    'images': image_url,
+                    'path_product': product.path_product
                 })
             return jsonify({
                 'status': 200,
-                'list_product': record
+                'record': record
             }), 200
     except Exception as e:
         return jsonify({
@@ -186,16 +188,6 @@ def get_product_by_seller(seller_id):
         }), 500
 
 
-def get_best_product():
-    try:
-        return True
-    except Exception as e:
-        return jsonify({
-            'status': 500,
-            'message': f'Error: {e}'
-        }), 500
-
-
 def upload_images():
     if 'images' not in request.files:
         return 'No images part', 400
@@ -279,7 +271,7 @@ def get_product_by_path_product(path_product):
             'category': product.category.category_name,
             'rate': product.rate,
             'color': product.color,
-            'material': product.material,
+            'material': product.material.capitalize(),
             'size': product.size,
             'width': product.width,
             'waterproof': product.waterproof,
@@ -298,3 +290,14 @@ def get_product_by_path_product(path_product):
             'message': f'Error: {e}'
         }), 500
 
+
+def get_best_product():
+    try:
+        return jsonify({
+            'Watch': True
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500

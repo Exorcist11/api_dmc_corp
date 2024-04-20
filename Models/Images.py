@@ -8,7 +8,7 @@ class Image(db.Model):
     id = Column(Integer, autoincrement=True, primary_key=True)
     url = Column(String(255), nullable=True)
     content_type = Column(String(255), nullable=False)
-    product_id = Column(String(5), nullable=True)
+    product_id = Column(String(50), nullable=True)
     account_id = Column(String(50), nullable=True)
 
 

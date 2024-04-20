@@ -21,9 +21,10 @@ class CartProducts(db.Model):
     __tablename__ = 'Cart_Product'
 
     cart_id = Column(String(50), ForeignKey('Carts.cart_id'), primary_key=True)
-    product_id = Column(String(9), ForeignKey('Products.product_id'), primary_key=True)
+    product_id = Column(String(50), ForeignKey('Products.product_id'), primary_key=True)
     amount = Column(Integer, nullable=True, default=0)
     price = Column(Float, nullable=True)
+    total = Column(Float, nullable=True, default=0)
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())
 

@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 class Product(db.Model):
     __tablename__ = 'Products'
 
-    product_id = Column(String(5), primary_key=True)
+    product_id = Column(String(50), primary_key=True)
     product_name = Column(String(125), nullable=True)
     path_product = Column(String(255), nullable=True)
     seller_id = Column(Integer, ForeignKey('Sellers.seller_id'), nullable=False)

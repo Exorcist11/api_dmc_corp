@@ -1,13 +1,15 @@
+from config import db
 import uuid
 import bcrypt
 from datetime import datetime
 from flask import request, jsonify
-from config import db
 from Models.Accounts import Account
 from Models.Carts import *
 from Models.Users import User
 from Models.Roles import Role
+from Models.Address import Address
 from Services.Middleware import *
+from Models.Provides import *
 
 
 def register():
@@ -106,11 +108,30 @@ def edit_account(account_id):
                 'message': 'User not found!'
             }), 404
         if request.method == 'GET':
+            address = Address.query.filter_by(account_id=user.account_id).all()
+            record = []
+            for item in address:
+                province = Province.query.filter_by(code=item.province).first()
+                district = District.query.filter_by(code=item.district).first_or_404()
+                ward = Ward.query.filter_by(code=item.ward).first()
+                record.append({
+                    'address_id': item.address_id,
+                    'full_name': item.full_name,
+                    'phone_number': item.phone_number,
+                    'province': province.full_name,
+                    'district': district.full_name,
+                    'ward': ward.full_name,
+                    'note': item.note
+                })
+
             infor = {
+                'user_id': user.account_id,
+                'user_name': user.account.username,
                 'full_name': user.full_name,
                 'phone_number': user.phone_number,
                 'email': user.email,
-                'date_of_birth': user.date_of_birth
+                'date_of_birth': user.date_of_birth,
+                'address': record
             }
             return jsonify({
                 'status': 200,
