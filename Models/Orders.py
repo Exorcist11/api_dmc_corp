@@ -7,13 +7,13 @@ from sqlalchemy.orm import relationship
 class Order(db.Model):
     __tablename__ = 'Orders'
 
-    order_id = Column(String(9), primary_key=True)
-    account_id = Column(String(50), ForeignKey('Users.account_id'))
-    status = Column(Boolean, default=False)
+    order_id = Column(String(50), primary_key=True)
+    account_id = Column(String(50), ForeignKey('Users.account_id'), nullable=False)
+    status = Column(String(10), default="pending")
     payment = Column(String(10), nullable=False)
     note = Column(String(200), nullable=True)
     address_id = Column(Integer, ForeignKey('Address.address_id'))
-    total = Column(Float, nullable=False)
+    total = Column(Float, nullable=False, default=0)
     create_at = Column(DateTime(timezone=True), default=func.now())
     update_at = Column(DateTime(timezone=True), default=func.now())
 
@@ -25,8 +25,8 @@ class Order(db.Model):
 class OrderProduct(db.Model):
     __tablename__ = 'Order_Product'
 
-    order_id = Column(String(9), ForeignKey('Orders.order_id'), primary_key=True)
-    product_id = Column(String(9), ForeignKey('Products.product_id'), primary_key=True)
+    order_id = Column(String(50), ForeignKey('Orders.order_id'), primary_key=True)
+    product_id = Column(String(50), ForeignKey('Products.product_id'), primary_key=True)
     amount = Column(Integer, nullable=True)
     price = Column(Float, nullable=False)
 

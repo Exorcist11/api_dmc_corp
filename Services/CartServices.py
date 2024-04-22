@@ -2,6 +2,7 @@ from config import db
 from Models.Carts import *
 from Models.Products import *
 from Models.Images import Image
+from Models.Orders import *
 from flask import request, jsonify
 from datetime import datetime
 from Services.Middleware import *
@@ -147,16 +148,6 @@ def remove_product_from_cart():
                 db.session.delete(cart_product)
             db.session.commit()
 
-            # cart_product = CartProducts.query.filter_by(cart_id=cart_id, product_id=product_id).first_or_404()
-            # record = {
-            #     'cart_id': cart_product.cart_id,
-            #     'account_id': cart_product.product_id,
-            #     'create_at': cart_product.create_at.isoformat(),
-            #     'update_at': cart_product.update_at.isoformat(),
-            #     'amount': cart_product.amount,
-            #     'cart_total': cart_product.total
-            # }
-
             return jsonify({
                 'status': 200,
                 'message': "Update cart success",
@@ -176,3 +167,6 @@ def remove_product_from_cart():
             'status': 500,
             'message': f'Error: {e}'
         }), 500
+
+
+
