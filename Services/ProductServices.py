@@ -1,6 +1,7 @@
 from Models.Products import Product
 from Models.Images import Image
 from Models.Categories import Category
+from Models.WishList import WishList
 from Services.Middleware import *
 from flask import request, jsonify, send_from_directory
 from sqlalchemy import desc
@@ -295,6 +296,155 @@ def get_best_product():
     try:
         return jsonify({
             'Watch': True
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def add_to_wishlist():
+    try:
+        request_json = request.json
+        account_id = request_json.get('account_id')
+        product_id = request_json.get('product_id')
+        if not account_id and not product_id:
+            return jsonify({
+                'status': 400,
+                'message': 'Missing required fields!'
+            }), 400
+
+        product = Product.query.filter_by(product_id=product_id).first()
+
+        if product is None:
+            return jsonify({
+                'status': 404,
+                'message': 'Product not found!'
+            }), 404
+
+        favorite = WishList.query.filter_by(account_id=account_id, product_id=product_id).first()
+        if favorite is None:
+            wish_list = WishList(
+                account_id=account_id,
+                product_id=product_id
+            )
+            db.session.add(wish_list)
+            db.session.commit()
+            return jsonify({
+                'status': 200,
+                'message': 'Add product to wishlist success!'
+            }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def remove_wish_list():
+    try:
+        request_json = request.json
+        account_id = request_json.get('account_id')
+        product_id = request_json.get('product_id')
+        wish_list = WishList.query.filter_by(account_id=account_id, product_id=product_id).first()
+        if wish_list is None:
+            return jsonify({
+                'status': 404,
+                'message': 'Product not found!'
+            }), 404
+        db.session.delete(wish_list)
+        db.session.commit()
+        return jsonify({
+            'status': 200,
+            'message': 'Delete product from wishlist'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_wish_list(user_id):
+    try:
+        wish = WishList.query.filter_by(account_id=user_id).all()
+        record = []
+        for item in wish:
+            product = Product.query.filter_by(product_id=item.product_id).first()
+            images = Image.query.filter_by(product_id=item.product_id).all()
+            image = [image.url for image in images]
+            record.append({
+                'image': image[0],
+                'product_name': product.product_name,
+                'path_product': product.path_product,
+                'price': product.price
+            })
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def favorite_product_account():
+    try:
+        request_json = request.json
+        account_id = request_json.get('account_id')
+        product_id = request_json.get('product_id')
+        favorite = WishList.query.filter_by(account_id=account_id, product_id=product_id).first()
+        if favorite is None:
+            return jsonify({
+                'status': 200,
+                'action': False
+            }), 200
+        else:
+            return jsonify({
+                'status': 200,
+                'action': True
+            }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def search_product_by_name():
+    try:
+        request_json = request.json
+        name = request_json.get('name')
+        products = Product.query.filter(Product.product_name.ilike(f'%{name}%')).all()
+        record = []
+        for product in products:
+            images = Image.query.filter_by(product_id=product.product_id).all()
+            image_url = [image.url for image in images]
+            record.append({
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'seller_name': product.seller.seller_name,
+                'nation': product.seller.nation,
+                'price': product.price,
+                'category': product.category.category_name,
+                'rate': product.rate,
+                'color': product.color,
+                'material': product.material,
+                'size': product.size,
+                'width': product.width,
+                'waterproof': product.waterproof,
+                'description_display': product.description_display,
+                'description_markdown': product.description_markdown,
+                'images': image_url,
+                'path_product': product.path_product
+            })
+        return jsonify({
+            'status': 200,
+            'record': record
         }), 200
     except Exception as e:
         return jsonify({

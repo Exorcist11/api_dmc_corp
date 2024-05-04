@@ -79,7 +79,8 @@ def login():
                 db.session.commit()
                 record = {
                     'account_id': account.account_id,
-                    'username': account.username
+                    'username': account.username,
+                    'role_id': account.role_id
                 }
                 return jsonify({
                     'status': 200,

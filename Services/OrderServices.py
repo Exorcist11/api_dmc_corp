@@ -4,6 +4,7 @@ from Models.Products import *
 from Models.Images import Image
 from Models.Address import *
 from Models.Orders import *
+from Models.Reviews import *
 from flask import request, jsonify
 from datetime import datetime
 from Services.Middleware import *
@@ -15,16 +16,17 @@ def cart_checkout():
         cart_id = request_json.get('cart_id')
         account_id = request_json.get('account_id')
         address_id = request_json.get('address_id')
+        payment = request_json.get('payment')
         cart_product = CartProducts.query.filter_by(cart_id=cart_id).all()
         order_id = generate_custom_id('ORDER')
 
         new_order = Order(
             order_id=order_id,
             account_id=account_id,
-            payment='cash',
+            payment=payment,
             note='',
             address_id=address_id,
-            total=100
+            total=0
         )
         db.session.add(new_order)
         order_product = Order.query.filter_by(order_id=order_id).first()
@@ -50,11 +52,15 @@ def cart_checkout():
                     'message': 'Item not valid!'
                 }), 404
 
+        if order_product.total < 700000:
+            order_product.total += 30000
+
         db.session.commit()
 
         return jsonify({
             'status': 200,
-            'message': 'Order success'
+            'message': 'Order success',
+            'order_id': order_id
         }), 200
     except Exception as e:
         return jsonify({
@@ -71,7 +77,7 @@ def active_order():
         order = Order.query.filter_by(order_id=order_id).first()
         if status == 'active':
             order.status = status
-        elif status == 'finish':
+        elif status == 'completed':
             order.status = status
         elif status == 'reject':
             order_product = OrderProduct.query.filter_by(order_id=order_id).all()
@@ -95,7 +101,7 @@ def active_order():
 
 def get_order():
     try:
-        orders = Order.query.all()
+        orders = Order.query.order_by(Order.create_at.desc()).all()
         record = []
         for order in orders:
             record.append({
@@ -103,7 +109,7 @@ def get_order():
                 'status': order.status,
                 'payment': order.payment,
                 'total': order.total,
-                'create_at': order.create_at
+                'create_at': order.create_at.strftime("%H:%M:%S %d/%m/%Y")
             })
         return jsonify({
             'status': 200,
@@ -138,6 +144,7 @@ def get_order_detail(order_id):
             'note': order.note,
             'total': order.total,
             'address': address_detail,
+            'create_at': order.create_at.strftime("%H:%M:%S %d/%m/%Y"),
             'product': []
         }
 
@@ -151,6 +158,7 @@ def get_order_detail(order_id):
                 'product_id': item.product_id,
                 'product_name': product.product_name,
                 'amount': item.amount,
+                'warehouse': product.amount,
                 'price': product.price,
                 'category': product.category.category_name,
                 'size': product.size,
@@ -197,7 +205,7 @@ def get_order_by_action(status):
 
 def get_order_by_account(account_id):
     try:
-        orders = Order.query.filter_by(account_id=account_id).all()
+        orders = Order.query.filter_by(account_id=account_id).order_by(Order.create_at.desc()).all()
 
         record = []
         for order in orders:
@@ -217,6 +225,105 @@ def get_order_by_account(account_id):
             'status': 200,
             'record': record
         })
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def review_by_customer():
+    try:
+        request_json = request.json
+        order_id = request_json.get('order_id')
+        product_id = request_json.get('product_id')
+        title = request_json.get('title')
+        content = request_json.get('content')
+        rate = request_json.get('rate', None)
+
+        order = Order.query.filter_by(order_id=order_id).first()
+
+        if order.status == 'completed':
+            review = Review.query.filter_by(order_id=order_id, account_id=order.account_id, product_id=product_id).first()
+            if review is None:
+                new_review = Review(
+                    title=title,
+                    content=content,
+                    rate=rate,
+                    order_id=order_id,
+                    product_id=product_id,
+                    account_id=order.account_id
+                )
+                db.session.add(new_review)
+                db.session.commit()
+
+                return jsonify({
+                    'status': 200,
+                    'message': 'New rating product'
+                }), 200
+        else:
+            return jsonify({
+                'status': 402,
+                'message': 'Order not completed'
+            }), 402
+
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_product_by_user_bought(account_id):
+    try:
+        orders = Order.query.filter_by(account_id=account_id).all()
+        record = []
+        for order in orders:
+            products = OrderProduct.query.filter_by(order_id=order.order_id).all()
+            for item in products:
+                product = Product.query.filter_by(product_id=item.product_id).first()
+                images = Image.query.filter_by(product_id=item.product_id).all()
+                image_url = [image.url for image in images]
+                record.append({
+                    'product_id': item.product_id,
+                    'product_name': product.product_name,
+                    'path_product': product.path_product,
+                    'size': product.size,
+                    'material': product.material,
+                    'color': product.color,
+                    'width': product.width,
+                    'category': product.category.category_name,
+                    'seller': product.seller.seller_name,
+                    'time': order.create_at.strftime("%H:%M:%S %d-%m-%Y"),
+                    'image': image_url[0]
+                })
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_order_pending():
+    try:
+        orders = Order.query.filter_by(status='pending').order_by(Order.create_at.desc()).all()
+        record = []
+        for order in orders:
+            record.append({
+                'order_id': order.order_id,
+                'status': order.status,
+                'payment': order.payment,
+                'total': order.total,
+                'create_at': order.create_at.strftime("%H:%M:%S %d/%m/%Y")
+            })
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
     except Exception as e:
         return jsonify({
             'status': 500,

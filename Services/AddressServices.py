@@ -18,7 +18,8 @@ def manage_address(account_id):
                 province=request_form['province'],
                 district=request_form['district'],
                 ward=request_form['ward'],
-                note=request_form['note']
+                note=request_form['note'],
+                is_activated=0
             )
             db.session.add(new_address)
             db.session.commit()
@@ -137,6 +138,68 @@ def setting_address(address_id):
         }), 500
 
 
+def set_active_address():
+    try:
+        request_json = request.json
+        address_id = request_json.get('address_id')
+
+        address = Address.query.filter_by(address_id=address_id).first()
+
+        if not address:
+            return jsonify({
+                'status': 404,
+                'message': 'Address not found'
+            }), 404
+
+        address.is_activated = True
+
+        other_addresses = Address.query.filter(Address.address_id != address_id).all()
+        for other_address in other_addresses:
+            other_address.is_activated = False
+
+        db.session.commit()
+
+        return jsonify({
+            'status': 200,
+            'message': 'Default address updated successfully'
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_default_address(account_id):
+    try:
+        address = Address.query.join(User.address).filter_by(account_id=account_id, is_activated=1).order_by(
+            desc(Address.update_at)).first()
+        list_address = []
+        province = Province.query.filter_by(code=address.province).first()
+        district = District.query.filter_by(code=address.district).first()
+        ward = Ward.query.filter_by(code=address.ward).first()
+        list_address.append({
+            'address_id': address.address_id,
+            'full_name': address.full_name,
+            'phone_number': address.phone_number,
+            'province': province.name if province else None,
+            'district': district.name if district else None,
+            'ward': ward.name if ward else None,
+            'note': address.note
+        })
+
+        return jsonify({
+            'status': 200,
+            'list_address': list_address
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
 def get_all_provinces():
     try:
         provinces = Province.query.all()
@@ -183,7 +246,7 @@ def get_district_by_province(province_id):
         }), 500
 
 
-def get_ward_by_district(province_id, district_id):
+def get_ward_by_district(district_id):
     try:
         district = District.query.filter_by(code=district_id).first_or_404()
         wards = Ward.query.filter_by(district_code=district_id).all()
