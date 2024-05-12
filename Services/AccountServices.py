@@ -4,12 +4,15 @@ import bcrypt
 from datetime import datetime
 from flask import request, jsonify
 from Models.Accounts import Account
-from Models.Carts import *
+from Models.Orders import *
+from Models.Products import *
+from Models.Images import *
 from Models.Users import User
 from Models.Roles import Role
 from Models.Address import Address
 from Services.Middleware import *
 from Models.Provides import *
+from sqlalchemy import func
 
 
 def register():
@@ -237,6 +240,64 @@ def change_role(account_id):
         return jsonify({
             'status': 200,
             'message': f'Change role successfully!'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def dashboard():
+    try:
+        account = db.session.query(Account).count()
+        product_quantity = db.session.query(Product).count()
+        total_completed_orders = db.session.query(
+            func.sum(Order.total).label('total_x')
+        ).filter(
+            Order.status == 'completed'
+        ).first()
+
+        products = Product.query.order_by(Product.create_at.desc()).limit(5).all()
+        record = []
+        for product in products:
+            images = Image.query.filter_by(product_id=product.product_id).all()
+            image_url = [image.url for image in images]
+            record.append({
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'seller_name': product.seller.seller_name,
+                'nation': product.seller.nation,
+                'price': product.price,
+                'amount': product.amount,
+                'category': product.category.category_name,
+                'rate': product.rate,
+                'color': product.color,
+                'material': product.material,
+                'size': product.size,
+                'width': product.width,
+                'waterproof': product.waterproof,
+                'description_display': product.description_display,
+                'description_markdown': product.description_markdown,
+                'images': image_url,
+                'path_product': product.path_product
+            })
+
+        accounts = Account.query.all()
+        new_acc = []
+        for ac in accounts:
+            new_acc.append({
+                'account_id': ac.account_id,
+                'create_at': ac.time_register,
+                'username': ac.username
+            })
+
+        return jsonify({
+            'new_product': record,
+            'account': account,
+            'product': product_quantity,
+            'summary': total_completed_orders.total_x,
+            'new_account': new_acc
         }), 200
     except Exception as e:
         return jsonify({

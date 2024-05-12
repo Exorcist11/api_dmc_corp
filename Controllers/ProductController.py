@@ -14,4 +14,6 @@ app.add_url_rule('/add_to_wishlist', methods=['POST'], view_func=add_to_wishlist
 app.add_url_rule('/delete_wish_list', methods=['POST'], view_func=remove_wish_list)
 app.add_url_rule('/get_wish_list/<string:user_id>', methods=['GET'], view_func=get_wish_list)
 app.add_url_rule('/favorite_product', methods=['POST'], view_func=favorite_product_account)
+app.add_url_rule('/category_product/<string:path>', methods=['GET'], view_func=category_product)
 app.add_url_rule('/search', methods=['POST'], view_func=search_product_by_name)
+app.add_url_rule('/search', methods=['GET'], view_func=search_param)

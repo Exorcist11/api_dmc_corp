@@ -1,10 +1,11 @@
+from Models import OrderProduct
 from Models.Products import Product
 from Models.Images import Image
 from Models.Categories import Category
 from Models.WishList import WishList
 from Services.Middleware import *
 from flask import request, jsonify, send_from_directory
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from config import db
 from werkzeug.utils import secure_filename
 import os
@@ -221,7 +222,8 @@ def upload_images():
 
 def get_product_by_category(path_category):
     try:
-        products = Product.query.join(Category).filter(Category.path_category == path_category).all()
+        products = Product.query.join(Category).filter(Category.path_category == path_category).order_by(Product.create_at.desc()).all()
+        category = Category.query.filter_by(path_category=path_category).first()
 
         record = []
         for product in products:
@@ -248,7 +250,8 @@ def get_product_by_category(path_category):
             })
         return jsonify({
             'record': record,
-            'status': 200
+            'status': 200,
+            'category': category.category_name
         }), 200
     except Exception as e:
         return jsonify({
@@ -294,8 +297,38 @@ def get_product_by_path_product(path_product):
 
 def get_best_product():
     try:
+        best_sellers = db.session.query(
+            Product.product_id,
+            Product.product_name,
+            Product.price,
+            Product.path_product,
+            func.sum(OrderProduct.amount).label('total_sold')
+        ).join(
+            OrderProduct, Product.product_id == OrderProduct.product_id
+        ).group_by(
+            Product.product_id
+        ).order_by(
+            func.sum(OrderProduct.amount).desc()
+        ).limit(8).all()
+
+        best_sellers_json = []
+        for product in best_sellers:
+            images = Image.query.filter_by(product_id=product.product_id).all()
+            image = [image.url for image in images]
+            product_data = {
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'price': product.price,
+                'path': product.path_product,
+                'images': image[0],
+                'total_sold': product.total_sold,
+
+            }
+            best_sellers_json.append(product_data)
+
         return jsonify({
-            'Watch': True
+            'record': best_sellers_json,
+            'category': 'Best seller'
         }), 200
     except Exception as e:
         return jsonify({
@@ -309,7 +342,7 @@ def add_to_wishlist():
         request_json = request.json
         account_id = request_json.get('account_id')
         product_id = request_json.get('product_id')
-        if not account_id and not product_id:
+        if not account_id or not product_id:
             return jsonify({
                 'status': 400,
                 'message': 'Missing required fields!'
@@ -335,6 +368,11 @@ def add_to_wishlist():
                 'status': 200,
                 'message': 'Add product to wishlist success!'
             }), 200
+        else:
+            return jsonify({
+                'status': 400,
+                'message': 'Product already exists in wishlist!'
+            }), 400
 
     except Exception as e:
         return jsonify({
@@ -420,6 +458,85 @@ def search_product_by_name():
         request_json = request.json
         name = request_json.get('name')
         products = Product.query.filter(Product.product_name.ilike(f'%{name}%')).all()
+        record = []
+        for product in products:
+            images = Image.query.filter_by(product_id=product.product_id).all()
+            image_url = [image.url for image in images]
+            record.append({
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'seller_name': product.seller.seller_name,
+                'nation': product.seller.nation,
+                'price': product.price,
+                'category': product.category.category_name,
+                'rate': product.rate,
+                'color': product.color,
+                'material': product.material,
+                'size': product.size,
+                'width': product.width,
+                'waterproof': product.waterproof,
+                'description_display': product.description_display,
+                'description_markdown': product.description_markdown,
+                'images': image_url,
+                'path_product': product.path_product
+            })
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def category_product(path):
+    try:
+        if path == 'dong-ho':
+            products = Product.query.join(Category).filter(Category.path_category == 'dong-ho').all()
+        else:
+            products = Product.query.join(Category).filter(Category.path_category != 'dong-ho').all()
+
+        record = []
+        for product in products:
+            images = Image.query.filter_by(product_id=product.product_id).all()
+            image_url = [image.url for image in images]
+            record.append({
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'seller_name': product.seller.seller_name,
+                'nation': product.seller.nation,
+                'category': product.category.category_name,
+                'price': product.price,
+                'amount': product.amount,
+                'rate': product.rate,
+                'color': product.color,
+                'material': product.material,
+                'size': product.size,
+                'width': product.width,
+                'waterproof': product.waterproof,
+                'description_display': product.description_display,
+                'description_markdown': product.description_markdown,
+                'images': image_url[0] if image_url else None,
+                'path_product': product.path_product
+            })
+        return jsonify({
+            'record': record,
+            'status': 200
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def search_param():
+    try:
+        args = request.args
+        value = args.get('value')
+        products = Product.query.filter(Product.product_name.ilike(f'%{value}%')).all()
         record = []
         for product in products:
             images = Image.query.filter_by(product_id=product.product_id).all()

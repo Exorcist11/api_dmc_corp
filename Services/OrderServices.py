@@ -1,8 +1,9 @@
-from config import db
+from config import *
 from Models.Carts import *
 from Models.Products import *
 from Models.Images import Image
 from Models.Address import *
+from Models.Users import *
 from Models.Orders import *
 from Models.Reviews import *
 from flask import request, jsonify
@@ -56,6 +57,33 @@ def cart_checkout():
             order_product.total += 30000
 
         db.session.commit()
+
+        # user = User.query.filter_by(account_id=account_id).first()
+        # msg = Message('Đơn hàng đã đặt thành công!', sender=user.email, recipients=['demokahootft@gmail.com'])
+        # html = f"""
+        #     <!doctype html>
+        #     <html>
+        #       <head>
+        #         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        #       </head>
+        #       <body style="font-family: sans-serif;">
+        #         <div style="display: block; margin: auto; max-width: 600px;" class="main">
+        #           <h1 style="font-size: 18px; font-weight: bold; margin-top: 20px">
+        #             Đơn hàng của bạn đã được đặt thành công!
+        #           </h1>
+        #           <p>Mã đơn hàng - {order_id} </p>
+        #           <p>Inspect it using the tabs you see above and learn how this email can be improved.</p>
+        #           <img alt="Inspect with Tabs" src="cid:welcome.png" style="width: 100%;">
+        #           <p>Now send your email using our fake SMTP server and integration of your choice!</p>
+        #           <p style="color: red">Good luck! Hope it works.</p>
+        #         </div>
+        #
+        #       </body>
+        #     </html>
+        #     """
+        #
+        # msg.html = html
+        # mail.send(msg)
 
         return jsonify({
             'status': 200,
@@ -121,6 +149,28 @@ def get_order():
             'message': f'Error: {e}'
         }), 500
 
+
+def get_order_pending():
+    try:
+        orders = Order.query.filter_by(status='pending').order_by(Order.create_at.desc()).all()
+        record = []
+        for order in orders:
+            record.append({
+                'order_id': order.order_id,
+                'status': order.status,
+                'payment': order.payment,
+                'total': order.total,
+                'create_at': order.create_at.strftime("%H:%M:%S %d/%m/%Y")
+            })
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
 
 def get_order_detail(order_id):
     try:

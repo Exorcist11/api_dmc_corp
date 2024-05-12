@@ -6,3 +6,4 @@ from Controllers.ProductController import *
 from Controllers.CategoryController import *
 from Controllers.CartController import *
 from Controllers.OrderController import *
+from Controllers.ReportController import *
