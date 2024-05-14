@@ -289,6 +289,7 @@ def review_by_customer():
         product_id = request_json.get('product_id')
         title = request_json.get('title')
         content = request_json.get('content')
+        name = request_json.get('name')
         rate = request_json.get('rate', None)
 
         order = Order.query.filter_by(order_id=order_id).first()
@@ -302,7 +303,8 @@ def review_by_customer():
                     rate=rate,
                     order_id=order_id,
                     product_id=product_id,
-                    account_id=order.account_id
+                    account_id=order.account_id,
+                    name=name
                 )
                 db.session.add(new_review)
                 db.session.commit()
@@ -334,19 +336,21 @@ def get_product_by_user_bought(account_id):
                 product = Product.query.filter_by(product_id=item.product_id).first()
                 images = Image.query.filter_by(product_id=item.product_id).all()
                 image_url = [image.url for image in images]
-                record.append({
-                    'product_id': item.product_id,
-                    'product_name': product.product_name,
-                    'path_product': product.path_product,
-                    'size': product.size,
-                    'material': product.material,
-                    'color': product.color,
-                    'width': product.width,
-                    'category': product.category.category_name,
-                    'seller': product.seller.seller_name,
-                    'time': order.create_at.strftime("%H:%M:%S %d-%m-%Y"),
-                    'image': image_url[0]
-                })
+                if order.status == 'completed':
+                    record.append({
+                        'product_id': item.product_id,
+                        'product_name': product.product_name,
+                        'path_product': product.path_product,
+                        'size': product.size,
+                        'material': product.material,
+                        'color': product.color,
+                        'width': product.width,
+                        'category': product.category.category_name,
+                        'seller': product.seller.seller_name,
+                        'time': order.create_at.strftime("%H:%M:%S %d-%m-%Y"),
+                        'image': image_url[0],
+                        'order_id': order.order_id
+                    })
         return jsonify({
             'status': 200,
             'record': record
@@ -369,6 +373,54 @@ def get_order_pending():
                 'payment': order.payment,
                 'total': order.total,
                 'create_at': order.create_at.strftime("%H:%M:%S %d/%m/%Y")
+            })
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_review_product(order_id, product_id):
+    try:
+        order = Order.query.filter_by(order_id=order_id).first()
+        review = Review.query.filter_by(order_id=order_id, product_id=product_id, account_id=order.account_id).first()
+        product = Product.query.filter_by(product_id=product_id).first()
+        images = Image.query.filter_by(product_id=product_id).all()
+        image_url = [image.url for image in images]
+        record = {
+            'order_id': order_id,
+            'product_id': product_id,
+            'image': image_url[0] if image_url else None,
+            'product_name': product.product_name
+        }
+        return jsonify({
+            'status': 200,
+            'record': record
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
+def get_review(product_id):
+    try:
+        reviews = Review.query.filter_by(product_id=product_id).all()
+        record = []
+        for rv in reviews:
+            record.append({
+                'review_id': rv.review_id,
+                'title': rv.title,
+                'content': rv.content,
+                'rate': rv.rate,
+                'username': rv.name,
+                'time': rv.create_at.strftime("%d/%m/%Y")
             })
         return jsonify({
             'status': 200,

@@ -11,6 +11,7 @@ class Review(db.Model):
     title = Column(String(100), nullable=True)
     content = Column(String(255), nullable=True)
     rate = Column(Integer, nullable=False)
+    name = Column(String(255), nullable=True)
     order_id = Column(String(50), ForeignKey('Orders.order_id'))
     product_id = Column(String(50), ForeignKey('Products.product_id'))
     account_id = Column(String(50), ForeignKey('Users.account_id'))
