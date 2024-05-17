@@ -42,7 +42,7 @@ def manage_address(account_id):
             }), 200
 
         if request.method == 'GET':
-            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).order_by(desc(Address.update_at)).limit(3).all()
+            lst_address = Address.query.join(User.address).filter_by(account_id=account_id).order_by(desc(Address.is_activated)).limit(3).all()
             list_address = []
             for address in lst_address:
                 province = Province.query.filter_by(code=address.province).first()

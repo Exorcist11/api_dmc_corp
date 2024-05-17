@@ -273,6 +273,7 @@ def get_product_by_path_product(path_product):
             'price': product.price,
             'amount': product.amount,
             'category': product.category.category_name,
+            'path_category': product.category.path_category,
             'rate': product.rate,
             'color': product.color,
             'material': product.material.capitalize(),
