@@ -196,6 +196,42 @@ def logout(account_id):
     }), 200
 
 
+def get_all_account():
+    try:
+        users = User.query.join(Account).join(Role).all()
+        list_user = []
+
+        for user in users:
+            list_user.append({
+                'account_id': user.account_id,
+                'username': user.account.username,
+                'full_name': user.full_name,
+                'phone_number': user.phone_number,
+                'email': user.email,
+                'dob': user.date_of_birth,
+                'time_register': user.time_register,
+                'time_update': user.time_update,
+                'is_deleted': user.is_deleted,
+                'role': user.account.role.role_id
+            })
+
+        if not users:
+            return jsonify({
+                'status': 404,
+                'message': 'Users is null!'
+            }), 404
+
+        return jsonify({
+            'status': 200,
+            'list_user': list_user,
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 500,
+            'message': f'Error: {e}'
+        }), 500
+
+
 def get_account_by_role():
     try:
         role_id = request.args.get('role_id')
