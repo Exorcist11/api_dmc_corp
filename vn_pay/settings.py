@@ -54,7 +54,7 @@ ROOT_URLCONF = 'vnpay_python.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        'DIRS': [os.path.join(BASE_DIR, '../templates')]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -119,7 +119,7 @@ STATICFILES_DIRS = (
 )
 STATIC_URL = '/static/'
 # VNPAY CONFIG
-VNPAY_RETURN_URL = 'http://127.0.0.1:9999/payment_return'  # get from config
+VNPAY_RETURN_URL = 'http://localhost:5173/payment_return'  # get from config
 VNPAY_PAYMENT_URL = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'  # get from config
 VNPAY_API_URL = 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction'
 VNPAY_TMN_CODE = '3HL9G162'  # Website ID in VNPAY System, get from config

@@ -18,8 +18,10 @@ def cart_checkout():
         account_id = request_json.get('account_id')
         address_id = request_json.get('address_id')
         payment = request_json.get('payment')
+        order_id = request_json.get('order_id')
         cart_product = CartProducts.query.filter_by(cart_id=cart_id).all()
-        order_id = generate_custom_id('ORDER')
+        if not order_id:
+            order_id = generate_custom_id('ORDER')
 
         new_order = Order(
             order_id=order_id,
@@ -57,33 +59,6 @@ def cart_checkout():
             order_product.total += 30000
 
         db.session.commit()
-
-        # user = User.query.filter_by(account_id=account_id).first()
-        # msg = Message('Đơn hàng đã đặt thành công!', sender=user.email, recipients=['demokahootft@gmail.com'])
-        # html = f"""
-        #     <!doctype html>
-        #     <html>
-        #       <head>
-        #         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        #       </head>
-        #       <body style="font-family: sans-serif;">
-        #         <div style="display: block; margin: auto; max-width: 600px;" class="main">
-        #           <h1 style="font-size: 18px; font-weight: bold; margin-top: 20px">
-        #             Đơn hàng của bạn đã được đặt thành công!
-        #           </h1>
-        #           <p>Mã đơn hàng - {order_id} </p>
-        #           <p>Inspect it using the tabs you see above and learn how this email can be improved.</p>
-        #           <img alt="Inspect with Tabs" src="cid:welcome.png" style="width: 100%;">
-        #           <p>Now send your email using our fake SMTP server and integration of your choice!</p>
-        #           <p style="color: red">Good luck! Hope it works.</p>
-        #         </div>
-        #
-        #       </body>
-        #     </html>
-        #     """
-        #
-        # msg.html = html
-        # mail.send(msg)
 
         return jsonify({
             'status': 200,
